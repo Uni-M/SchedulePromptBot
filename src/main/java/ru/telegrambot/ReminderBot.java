@@ -2,10 +2,6 @@ package ru.telegrambot;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.PropertySource;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -15,6 +11,7 @@ import ru.telegrambot.handler.CallbackQueryHandler;
 import ru.telegrambot.handler.MessageHandler;
 import ru.telegrambot.service.PromptService;
 import ru.telegrambot.service.UserService;
+import ru.telegrambot.utils.EnvHelper;
 
 import javax.inject.Singleton;
 import java.text.SimpleDateFormat;
@@ -30,9 +27,8 @@ import java.util.concurrent.TimeUnit;
 @Singleton
 public class ReminderBot extends TelegramLongPollingBot {
 
-
-    private final String botUsername;
-    private final String botToken;
+    private final String botUsername = EnvHelper.getValue("BOT_NAME");
+    private final String botToken = EnvHelper.getValue("BOT_TOKEN");
 
     private final CallbackQueryHandler callbackQueryHandler;
     private final MessageHandler messageHandler;
@@ -45,15 +41,12 @@ public class ReminderBot extends TelegramLongPollingBot {
     public ReminderBot(MessageHandler messageHandler,
                        CallbackQueryHandler callbackQueryHandler,
                        UserService userService,
-                       PromptService promptService,
-                       String botToken,
-                       String botUsername) {
+                       PromptService promptService) {
         this.messageHandler = messageHandler;
         this.callbackQueryHandler = callbackQueryHandler;
         this.userService = userService;
         this.promptService = promptService;
-        this.botToken = botToken;
-        this.botUsername = botUsername;
+
     }
 
     {
@@ -63,10 +56,8 @@ public class ReminderBot extends TelegramLongPollingBot {
 
             if (!actualPrompts.isEmpty()) {
                 actualPrompts.forEach(info -> {
-                    System.out.println(createMessage(info));
                     try {
                         execute(scheduledSendMessage(info));
-
                     } catch (TelegramApiException e) {
                         log.error("Fail to execute scheduled message. Exception: {}", e.getMessage());
                     }

@@ -23,12 +23,6 @@ import ru.telegrambot.service.UserService;
 @RequiredArgsConstructor
 public class BotConfig {
 
-    @Value("${telegram.bot-name}")
-    private String botUsername;
-
-    @Value("${telegram.bot-token}")
-    private String botToken;
-
     private final CallbackQueryHandler callbackQueryHandler;
     private final MessageHandler messageHandler;
     private final UserService userService;
@@ -42,9 +36,7 @@ public class BotConfig {
         ReminderBot bot = new ReminderBot(messageHandler,
                 callbackQueryHandler,
                 userService,
-                promptService,
-                botToken,
-                botUsername);
+                promptService);
 
         try {
             telegramBotsApi.registerBot(bot);
