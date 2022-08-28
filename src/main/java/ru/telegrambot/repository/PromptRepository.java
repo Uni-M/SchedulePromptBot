@@ -58,6 +58,15 @@ public interface PromptRepository extends CrudRepository<Prompt, String> {
     @Modifying
     @Transactional
     @Query(value = "UPDATE public.prompts " +
+            "SET reminding_date = :newDate " +
+            "WHERE task_description = :description",
+            nativeQuery = true)
+    void updateDate(@Param("newDate") String description,
+                    @Param("newDate") LocalDateTime newDate);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE public.prompts " +
             "SET state = :state " +
             "WHERE task_description = :description",
             nativeQuery = true)

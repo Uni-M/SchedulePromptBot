@@ -147,7 +147,7 @@ public class ReminderBot extends TelegramLongPollingBot {
 
                         allInfo.add(info);
                     }
-//                    promptService.updatePrompt(prompt.getTaskDescription(), prompt.getDate().plusSeconds(computeReminderFrequency(prompt.getReminderFrequency())));
+                    promptService.updatePrompt(prompt.getTaskDescription(), prompt.getDate().plusSeconds(computeReminderFrequency(prompt.getReminderFrequency())));
                 }));
         return allInfo;
 

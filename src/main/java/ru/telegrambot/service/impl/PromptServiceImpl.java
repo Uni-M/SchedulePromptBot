@@ -98,6 +98,11 @@ public class PromptServiceImpl implements PromptService {
     }
 
     @Override
+    public void updatePrompt(String name, LocalDateTime newDate) {
+        promptRepository.updateDate(name, newDate);
+    }
+
+    @Override
     public String updateState(PromptState oldState, PromptState newState) {
 
         Optional<Prompt> entity = promptRepository.getByPromptStateType(oldState.name());

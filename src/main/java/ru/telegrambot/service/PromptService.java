@@ -4,6 +4,7 @@ import ru.telegrambot.constant.state.PromptState;
 import ru.telegrambot.entity.Prompt;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,4 +24,6 @@ public interface PromptService {
     void updateState (String name, PromptState stateType);
 
     String updateState(PromptState oldState, PromptState newState);
+
+    void updatePrompt(String name, LocalDateTime newDate);
 }
