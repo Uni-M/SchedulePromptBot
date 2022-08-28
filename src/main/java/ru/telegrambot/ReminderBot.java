@@ -68,7 +68,7 @@ public class ReminderBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        log.info("Update from user with name \"{}\" received", update.getChatMember().getFrom().getUserName());
+        log.info("New update received");
 
         SendMessage sendMessage = handleUpdate(update);
 
@@ -147,7 +147,7 @@ public class ReminderBot extends TelegramLongPollingBot {
 
                         allInfo.add(info);
                     }
-                    promptService.updatePrompt(prompt.getTaskDescription(), prompt.getDate().plusSeconds(computeReminderFrequency(prompt.getReminderFrequency())));
+//                    promptService.updatePrompt(prompt.getTaskDescription(), prompt.getDate().plusSeconds(computeReminderFrequency(prompt.getReminderFrequency())));
                 }));
         return allInfo;
 

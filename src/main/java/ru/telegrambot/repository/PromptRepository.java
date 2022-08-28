@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.telegrambot.entity.Prompt;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,14 +24,36 @@ public interface PromptRepository extends CrudRepository<Prompt, String> {
     Optional<Prompt> getByTaskDescription(String name);
     Optional<List<Prompt>> getByUserName(String name);
 
+    @Transactional
+    @Query(value = "SELECT users.time_zone " +
+            "FROM users " +
+            "JOIN prompts " +
+            "ON users.user_name = prompts.user_name " +
+            "WHERE prompts.user_name = :name " +
+            "LIMIT 1",
+            nativeQuery = true)
+    Optional<String> getTimeZone(@Param("name") String name);
+
+
+    @Transactional
+    @Query(value = "SELECT users.time_zone " +
+            "FROM users " +
+            "JOIN prompts " +
+            "ON users.user_name = prompts.user_name " +
+            "WHERE prompts.state = :state " +
+            "LIMIT 1",
+            nativeQuery = true)
+    Optional<String> getTimeZoneWithState(@Param("state") String state);
+
     @Modifying
     @Transactional
     @Query(value = "UPDATE public.prompts " +
-            "SET reminding_date = :newDate " +
-            "WHERE task_description = :name",
+            "SET reminding_date = :newDate, state = :newState " +
+            "WHERE state = :oldState",
             nativeQuery = true)
-    void updateDate(@Param("name") String name,
-                    @Param("newDate") Instant newDate);
+    void updateDate(@Param("newDate") LocalDateTime newDate,
+                    @Param("newState") String newState,
+                    @Param("oldState") String oldState);
 
     @Modifying
     @Transactional

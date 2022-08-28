@@ -8,9 +8,11 @@ import ru.telegrambot.entity.User;
 import ru.telegrambot.exeption.BotException;
 import ru.telegrambot.repository.UserRepository;
 import ru.telegrambot.service.UserService;
+import ru.telegrambot.utils.EnvHelper;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.TimeZone;
 
 @Slf4j
 @Service
@@ -26,6 +28,7 @@ public class UserServiceImpl implements UserService {
         user.setUserName(names[0]);
         user.setFirstName(names[1]);
         user.setSecondName(names[2]);
+        user.setTimeZone(userRepository.getLocale(EnvHelper.getValue("ADMIN_NAME")).orElse("+00:00"));
         userRepository.save(user);
 
     }

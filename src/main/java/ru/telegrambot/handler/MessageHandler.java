@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.DataBinder;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -326,7 +327,7 @@ public class MessageHandler {
 
                 if (input.matches("^[+-](([0-1][0-9]):([0-5][0-9])|12:00)$")) {
                     try {
-                        userService.saveTimeZone(userName, "GMT" + input);
+                        userService.saveTimeZone(userName, input);
                     } catch (BotException e) {
                         return new SendMessage(chatId.toString(), BotMessageTemplate.ERROR_FIND_USER.getDescription());
                     }
@@ -356,7 +357,11 @@ public class MessageHandler {
                         stateControlService.addState(activeUser, ChatStateType.SET_PROMPT_DATE);
 
                         log.info("Prompt info add successful. New info: {}", input);
-                    } catch (Exception e) {
+                    } catch (DataIntegrityViolationException e) {
+                        log.error("Fail to add prompt for user with username: {}. Prompt description should be unique", activeUser, e); // TODO fix unique description
+                        return createSendMessageWithoutKeyboard(chatId.toString(),
+                                (BotMessageTemplate.ERROR_ADDITION_PROMPT_DESCRIPTION.getDescription()));
+                    } catch (BotException e) {
                         log.error("Fail to add prompt for user with username: {}", activeUser, e);
                         return createSendMessageWithoutKeyboard(chatId.toString(),
                                 (BotMessageTemplate.ERROR_FIND_USER.getDescription() + activeUser));

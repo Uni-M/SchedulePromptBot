@@ -16,12 +16,9 @@ public interface PromptService {
 
     void deletePrompt(Prompt prompt);
 
-    void updatePrompt(String name, Instant newDate);
-
     Optional<List<Prompt>> getActualPrompts(Instant start, Instant end);
 
     boolean saveDate(String newDate, PromptState newState);
-//    boolean saveDate(String newDate, PromptState newState, String timeZone);
 
     void updateState (String name, PromptState stateType);
 

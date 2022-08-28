@@ -14,6 +14,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @Entity
@@ -43,8 +45,10 @@ public class Prompt implements Serializable {
     /**
      * Дата ближайшего напоминания
      */
-    @Column(name = "reminding_date")
-    private Instant date;
+    @Column(name = "reminding_date", columnDefinition = "timestamp with time zone")
+    private LocalDateTime date;
+
+    //    private Instant date;
 
     /**
      * Частота напоминания

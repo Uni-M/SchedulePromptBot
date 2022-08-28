@@ -14,6 +14,12 @@ import ru.telegrambot.service.PromptService;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -53,30 +59,24 @@ public class PromptServiceImpl implements PromptService {
     }
 
     @Override
-    public void updatePrompt(String name, Instant newDate) {
-        promptRepository.updateDate(name, newDate);
-    }
-
-    @Override
     public Optional<List<Prompt>> getActualPrompts(Instant start, Instant end) {
         return promptRepository.findAllByDateBetween(start, end);
     }
 
     @Override
-    public boolean saveDate(String newDate, PromptState newState) { //, String timeZone
+    public boolean saveDate(String newDate, PromptState newState) {
 
-        Optional<Prompt> entity = promptRepository.getByPromptStateType(PromptState.SET_PROMPT_DATE.name());
         try {
-            Prompt prompt = entity.get();
-
             SimpleDateFormat formatInp = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-            // TODO добавить учет часового пояса
-            formatInp.setTimeZone(TimeZone.getTimeZone("GMT+01:00"));
+            String tz = promptRepository.getTimeZoneWithState(PromptState.SET_PROMPT_DATE.name()).get();
+
+            formatInp.setTimeZone(TimeZone.getTimeZone(tz));
             Instant dateInstant = formatInp.parse(newDate).toInstant();
 
-            prompt.setDate(dateInstant);
-            prompt.setPromptStateType(newState.name());
-            promptRepository.save(prompt);
+            ZonedDateTime zdt = LocalDateTime.ofInstant(dateInstant, ZoneId.ofOffset("GMT", ZoneOffset.of(tz))).atZone(ZoneId.ofOffset("GMT", ZoneOffset.of(tz)));
+            LocalDateTime localDateTimeWTZ = zdt.toLocalDateTime();
+
+            promptRepository.updateDate(localDateTimeWTZ, newState.name(), PromptState.SET_PROMPT_DATE.name());
             return true;
 
         } catch (NullPointerException | NoSuchElementException e) {
