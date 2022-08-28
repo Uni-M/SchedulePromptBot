@@ -33,6 +33,7 @@ import static ru.telegrambot.constant.button.PromptKeyboardButtons.USER_MENU;
 @Component
 public class ReplyKeyboardImpl implements ReplyKeyboard {
 
+    // Клавиатура для подтверждения или отмены действий
     @Override
     public ReplyKeyboardMarkup getDeletionConfirmationKeyboard() {
 
@@ -52,6 +53,7 @@ public class ReplyKeyboardImpl implements ReplyKeyboard {
         return replyKeyboardMarkup;
     }
 
+    // Клавиатура для пользователя (только получение всех актуальных напоминаний)
     @Override
     public ReplyKeyboardMarkup getUserMenuKeyboard() {
 
@@ -69,6 +71,7 @@ public class ReplyKeyboardImpl implements ReplyKeyboard {
         return replyKeyboardMarkup;
     }
 
+    // Клавиатура для админа с возможными действиями с пользователями
     @Override
     public ReplyKeyboardMarkup getAdminUserMenuKeyboard() {
 
@@ -91,6 +94,7 @@ public class ReplyKeyboardImpl implements ReplyKeyboard {
         return replyKeyboardMarkup;
     }
 
+    // Клавиатура для админа с возможными действиями с напоминаниями
     @Override
     public ReplyKeyboardMarkup getAdminPromptMenuKeyboard() {
 
@@ -142,6 +146,7 @@ public class ReplyKeyboardImpl implements ReplyKeyboard {
         return replyKeyboardMarkup;
     }
 
+    // Клавиатура для админа с возможными временными периодами повторения напоминаний
     @Override
     public ReplyKeyboardMarkup getRemindingKeyboard() {
 

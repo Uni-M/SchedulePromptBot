@@ -1,5 +1,8 @@
 package ru.telegrambot.constant.state;
 
+/**
+ * Состояние напоминания
+ */
 public enum PromptState {
 
     DELETE,

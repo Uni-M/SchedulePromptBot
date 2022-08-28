@@ -19,7 +19,6 @@ import ru.telegrambot.service.PromptService;
 import ru.telegrambot.service.StateControlService;
 import ru.telegrambot.service.UserService;
 
-import static ru.telegrambot.constant.message.BotExceptionMessage.FAIL_GET_FULL_NAME;
 import static ru.telegrambot.constant.message.BotMessageTemplate.CHOOSE_ACTIVITY;
 import static ru.telegrambot.constant.message.BotMessageTemplate.CHOOSE_PROMPT_ACTIVITY;
 import static ru.telegrambot.constant.message.BotMessageTemplate.DELETE_PROMPT_MESSAGE;
@@ -41,7 +40,11 @@ public class CallbackQueryHandler {
 
     final ReplyKeyboard replyKeyboard;
 
-    // Ответ на инлайн-клавиатуру
+    /**
+     * Обработка входящих объектов CallbackQuery
+     * @param callbackQuery входящий запрос обратного вызова от кнопки обратного вызова на встроенной инлайн-клавиатуре
+     * @return объект SendMessage содержащий текстовый ответ пользователю на запрос
+     */
     public SendMessage processCallbackQuery(CallbackQuery callbackQuery) {
 
         final String chatId = callbackQuery.getMessage().getChatId().toString();
@@ -124,10 +127,10 @@ public class CallbackQueryHandler {
                     userName;
             return DELETE_USER_MESSAGE.getDescription() + replyName;
         } catch (Exception e) {
-            log.error(FAIL_GET_FULL_NAME.getMessage(),userName, e);
+            log.error("Fail to get full name for user with username: {}", userName, e);
         }
 
-        return ERROR_FIND_USER.getDescription()+userName;
+        return ERROR_FIND_USER.getDescription() + userName;
 
     }
 

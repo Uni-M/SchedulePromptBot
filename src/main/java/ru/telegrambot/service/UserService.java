@@ -7,11 +7,11 @@ public interface UserService {
 
     void updateUserInfo(User user);
 
-    void deleteUser(String name);
+    void deleteUser(String name) throws BotException;
 
-    Iterable<User> getAllUsers();
+    Iterable<User> getAllUsers() throws BotException;
 
-    void saveUserChatId(String userName, Long chatId);
+    void saveUserChatId(String userName, Long chatId) throws BotException;
 
     void saveUserNames(String[] names);
 
@@ -21,7 +21,7 @@ public interface UserService {
 
     Long getChatId(String userName);
 
-    void saveTimeZone(String userName, String  timeZone);
+    void saveTimeZone(String userName, String  timeZone) throws BotException;
 
-    String getTimeZone(String userName);
+    String getTimeZone(String userName) throws BotException;
 }

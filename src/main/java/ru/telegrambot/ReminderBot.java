@@ -59,7 +59,7 @@ public class ReminderBot extends TelegramLongPollingBot {
                     try {
                         execute(scheduledSendMessage(info));
                     } catch (TelegramApiException e) {
-                        log.error("Fail to execute scheduled message. Exception: {}", e.getMessage());
+                        log.error("Fail to execute scheduled message. Exception: ", e);
                     }
                 });
             }
@@ -68,14 +68,14 @@ public class ReminderBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        log.info("New User received. Update ID: {}", update.getUpdateId());
+        log.info("Update from user with name \"{}\" received", update.getChatMember().getFrom().getUserName());
 
         SendMessage sendMessage = handleUpdate(update);
 
         try {
             execute(sendMessage);
         } catch (TelegramApiException e) {
-            log.error("Fail to execute message. Exception: {}", e.getMessage());
+            log.error("Fail to execute message. Exception: ", e);
         }
 
     }

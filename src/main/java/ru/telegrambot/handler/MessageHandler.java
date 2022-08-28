@@ -11,13 +11,13 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
-import ru.telegrambot.constant.message.BotExceptionMessage;
 import ru.telegrambot.constant.message.BotMessageTemplate;
 import ru.telegrambot.constant.state.ChatStateType;
 import ru.telegrambot.constant.state.PromptState;
 import ru.telegrambot.entity.ChatState;
 import ru.telegrambot.entity.Prompt;
 import ru.telegrambot.entity.User;
+import ru.telegrambot.exeption.BotException;
 import ru.telegrambot.keyboard.InlineKeyboard;
 import ru.telegrambot.keyboard.ReplyKeyboard;
 import ru.telegrambot.service.PromptService;
@@ -49,6 +49,11 @@ public class MessageHandler {
 
     final AdminValidator personValidator;
 
+    /**
+     * Обработка входящих входящих текстовых сообщений
+     * @param update объект содержащий текстовое сообщение от пользователя
+     * @return объект SendMessage содержащий текстовый ответ пользователю на запрос
+     */
     public SendMessage answerMessage(Update update) {
 
         Long chatId = update.getMessage().getChatId();
@@ -85,9 +90,15 @@ public class MessageHandler {
 
         stateControlService.addState(userName, ChatStateType.UPDATE_USER);
 
-        return createSendMessageWithInlineKeyboard(chatId.toString(),
-                BotMessageTemplate.CHOOSE_USER_MESSAGE.getDescription(),
-                inlineKeyboard.getInlineMessageKeyboardWithNames());
+        try {
+            return createSendMessageWithInlineKeyboard(chatId.toString(),
+                    BotMessageTemplate.CHOOSE_USER_MESSAGE.getDescription(),
+                    inlineKeyboard.getInlineMessageKeyboardWithNames());
+        } catch (BotException e) {
+            return createSendMessageWithoutKeyboard(chatId.toString(),
+                    BotMessageTemplate.USER_LIST_ERROR.getDescription());
+        }
+
     }
 
     private SendMessage updateRemindingFrequencyMessage(Long chatId, String userName) {
@@ -115,7 +126,13 @@ public class MessageHandler {
 
     private SendMessage getStartMessage(Long chatId, String userName, boolean isAdmin) {
 
-        userService.saveUserChatId(userName, chatId);
+        try {
+            userService.saveUserChatId(userName, chatId);
+        } catch (BotException e) {
+            log.error("Fail to find user with username: {}", userName, e);
+            return createSendMessageWithoutKeyboard(chatId.toString(),
+                    BotMessageTemplate.ERROR_FIND_USER.getDescription());
+        }
 
         if (isAdmin) {
             return createSendMessageWithReplyKeyboard(chatId.toString(),
@@ -207,9 +224,14 @@ public class MessageHandler {
 
         stateControlService.addState(userName, ChatStateType.CHOOSE_ACTION);
 
-        return createSendMessageWithInlineKeyboard(chatId.toString(),
-                BotMessageTemplate.CHOOSE_USER_MESSAGE.getDescription(),
-                inlineKeyboard.getInlineMessageKeyboardWithNames());
+        try {
+            return createSendMessageWithInlineKeyboard(chatId.toString(),
+                    BotMessageTemplate.CHOOSE_USER_MESSAGE.getDescription(),
+                    inlineKeyboard.getInlineMessageKeyboardWithNames());
+        } catch (BotException e) {
+            return createSendMessageWithoutKeyboard(chatId.toString(),
+                    BotMessageTemplate.USER_LIST_ERROR.getDescription());
+        }
     }
 
     private SendMessage getAddUserMessage(Long chatId, String userName) {
@@ -224,9 +246,14 @@ public class MessageHandler {
 
         stateControlService.addState(userName, ChatStateType.DELETE_USER);
 
-        return createSendMessageWithInlineKeyboard(chatId.toString(),
-                BotMessageTemplate.CHOOSE_USER_MESSAGE.getDescription(),
-                inlineKeyboard.getInlineMessageKeyboardWithNames());
+        try {
+            return createSendMessageWithInlineKeyboard(chatId.toString(),
+                    BotMessageTemplate.CHOOSE_USER_MESSAGE.getDescription(),
+                    inlineKeyboard.getInlineMessageKeyboardWithNames());
+        } catch (BotException e) {
+            return createSendMessageWithoutKeyboard(chatId.toString(),
+                    BotMessageTemplate.USER_LIST_ERROR.getDescription());
+        }
     }
 
     private SendMessage getCancellationMessage(Long chatId, String userName) {
@@ -243,7 +270,13 @@ public class MessageHandler {
         ChatState chatState = stateControlService.getState();
 
         switch (chatState.getChatState()) {
-            case "DELETE_USER" -> userService.deleteUser(chatState.getUserName());
+            case "DELETE_USER" -> {
+                try {
+                    userService.deleteUser(chatState.getUserName());
+                } catch (BotException e) {
+                    log.error("Fail to find user with username: {}", chatState.getUserName(), e);
+                }
+            }
             case "DELETE_PROMPT" -> promptService.deletePrompt(
                     promptService.getByState(PromptState.DELETE));
             default -> {
@@ -261,7 +294,7 @@ public class MessageHandler {
 
     }
 
-    // TODO нежен рефакторинг! достать все и перекинуть возможно в UserInputParseService
+    // TODO нужен рефакторинг! достать все и перекинуть возможно в UserInputParseService
     private SendMessage getUserInfo(Long chatId, String userName, String input) {
         SendMessage sendMessage;
 
@@ -292,7 +325,11 @@ public class MessageHandler {
             case SAVE_LOCALE:
 
                 if (input.matches("^[+-](([0-1][0-9]):([0-5][0-9])|12:00)$")) {
-                    userService.saveTimeZone(userName, "GMT" + input);
+                    try {
+                        userService.saveTimeZone(userName, "GMT" + input);
+                    } catch (BotException e) {
+                        return new SendMessage(chatId.toString(), BotMessageTemplate.ERROR_FIND_USER.getDescription());
+                    }
                     stateControlService.addState(userName, ChatStateType.ACTUAL_STATE);
                     sendMessage = new SendMessage(chatId.toString(), BotMessageTemplate.SUCCESS_ADD_LOCATION_MESSAGE.getDescription());
                 } else {
@@ -318,9 +355,11 @@ public class MessageHandler {
 
                         stateControlService.addState(activeUser, ChatStateType.SET_PROMPT_DATE);
 
-                        log.info(BotExceptionMessage.SUCCESS_ADD_PROMPT.getMessage(), input);
+                        log.info("Prompt info add successful. New info: {}", input);
                     } catch (Exception e) {
-                        log.error(BotExceptionMessage.FAIL_ADD_PROMPT.getMessage(), activeUser, e);
+                        log.error("Fail to add prompt for user with username: {}", activeUser, e);
+                        return createSendMessageWithoutKeyboard(chatId.toString(),
+                                (BotMessageTemplate.ERROR_FIND_USER.getDescription() + activeUser));
                     }
 
                     return createSendMessageWithoutKeyboard(chatId.toString(), BotMessageTemplate.ADD_PROMPT_DATE_MESSAGE.getDescription());
@@ -341,9 +380,9 @@ public class MessageHandler {
 
                         stateControlService.addState(userName, ACTUAL_STATE);
 
-                        log.info(BotExceptionMessage.SUCCESS_ADD_PROMPT.getMessage(), input);
+                        log.info("Prompt info add successful. New info: {}", input);
                     } catch (Exception e) {
-                        log.error(BotExceptionMessage.FAIL_FIND_PROMPT_WITH_STATE.getMessage(), PromptState.UPDATE.name(), e);
+                        log.error("Fail to find prompt with state: {}", PromptState.UPDATE.name(), e);
                     }
 
                     sendMessage = new SendMessage(chatId.toString(), BotMessageTemplate.SUCCESS_ADD_NEW_INFO_MESSAGE.getDescription());
@@ -368,7 +407,7 @@ public class MessageHandler {
                     stateControlService.addState(activeUser, ChatStateType.SET_REMINDER_FREQUENCY);
 
                     return createSendMessageWithoutKeyboard(chatId.toString(),
-                    BotMessageTemplate.ADD_PROMPT_DATE_MESSAGE.getDescription());
+                            BotMessageTemplate.ADD_PROMPT_REMIND_MESSAGE.getDescription());
                 } else {
                     return createSendMessageWithoutKeyboard(chatId.toString(), BotMessageTemplate.INVALID_DATE_FORMAT.getDescription());
                 }
@@ -452,7 +491,7 @@ public class MessageHandler {
                                 date = properFullFormat.format(d);
                             } catch (ParseException e) {
                                 date = BotMessageTemplate.MISSING_DATE.getDescription();
-                                log.error(BotExceptionMessage.FAIL_DATE_PARSING.getMessage());
+                                log.error("Fail to parse date. Date is missing");
                             }
                             parsedPrompts.append(String.join(" ", "*" + date + "*", prompt.getTaskDescription(), "\n"));
                         });
@@ -465,7 +504,7 @@ public class MessageHandler {
             }
 
         } catch (Exception e) {
-            log.error(BotExceptionMessage.FAIL_FIND_USER.getMessage(), chatState.getUserName(), e);
+            log.error("Fail to find user with username: {}", chatState.getUserName(), e);
             return BotMessageTemplate.UNKNOWN_ERROR.getDescription();
         }
 

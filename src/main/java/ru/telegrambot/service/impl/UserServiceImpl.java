@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.telegrambot.constant.message.BotExceptionMessage;
 import ru.telegrambot.entity.User;
 import ru.telegrambot.exeption.BotException;
 import ru.telegrambot.repository.UserRepository;
@@ -43,7 +42,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
 
         } catch (NullPointerException | NoSuchElementException e) {
-            throw new BotException(BotExceptionMessage.FAIL_FIND_USER.getMessage() + userName, e);
+            throw new BotException("Fail to find user with username: " + userName, e);
         }
 
     }
@@ -55,7 +54,7 @@ public class UserServiceImpl implements UserService {
         try {
             return entity.get();
         } catch (NullPointerException | NoSuchElementException e) {
-            throw new BotException(BotExceptionMessage.FAIL_FIND_USER.getMessage() + userName, e);
+            throw new BotException("Fail to find user with username: " + userName, e);
         }
     }
 
@@ -66,7 +65,7 @@ public class UserServiceImpl implements UserService {
         try {
             return chatId.get();
         } catch (NullPointerException | NoSuchElementException e) {
-            log.error(BotExceptionMessage.FAIL_GET_CHAT_ID.getMessage(), userName, e);
+            log.error("Fail to get chat id for user with username: {}", userName, e);
         }
 
         return null;
@@ -74,13 +73,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void saveTimeZone(String userName, String timeZone) {
-        userRepository.saveLocale(userName, timeZone);
+    public void saveTimeZone(String userName, String timeZone) throws BotException {
+
+        try {
+            userRepository.saveLocale(userName, timeZone);
+        } catch (NullPointerException | NoSuchElementException e) {
+            throw new BotException("Fail to find user with username: " + userName, e);
+        }
+
     }
 
     @Override
-    public String getTimeZone(String userName) {
-        return userRepository.getLocale(userName).orElse("+00:00");
+    public String getTimeZone(String userName) throws BotException {
+
+        try {
+            return userRepository.getLocale(userName).orElse("+00:00");
+        } catch (NullPointerException | NoSuchElementException e) {
+            throw new BotException("Fail to find user with username: " + userName, e);
+        }
     }
 
     @Override
@@ -89,18 +99,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(String name) {
-        userRepository.deleteUserByUserName(name);
+    public void deleteUser(String userName) throws BotException {
+
+        try {
+            userRepository.deleteUserByUserName(userName);
+        } catch (NullPointerException | NoSuchElementException e) {
+            throw new BotException("Fail to find user with username: " + userName, e);
+        }
+
     }
 
     @Override
-    public Iterable<User> getAllUsers() {
-        return userRepository.findAll();
+    public Iterable<User> getAllUsers() throws BotException {
+        if (userRepository.count() != 0) {
+            return userRepository.findAll();
+        } else {
+            throw new BotException("Fail get list of users. At least one user (admin) must be in the database");
+        }
+
     }
 
     @Override
-    public void saveUserChatId(String userName, Long chatId) {
-        userRepository.saveChatId(userName, chatId);
+    public void saveUserChatId(String userName, Long chatId) throws BotException {
+
+        try {
+            userRepository.saveChatId(userName, chatId);
+        } catch (NullPointerException | NoSuchElementException e) {
+            throw new BotException("Fail to find user with username: " + userName, e);
+        }
     }
 
 

@@ -1,15 +1,14 @@
 package ru.telegrambot.validation;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import ru.telegrambot.utils.EnvHelper;
 
 @Service
 public class AdminValidator implements Validator {
 
-    @Value("${telegram.admin.user-name}")
-    private static String ADMIN_USERNAME;
+    private static final String ADMIN_USERNAME = EnvHelper.getValue("ADMIN_NAME");
 
     @Override
     public boolean supports(Class<?> aClass) {

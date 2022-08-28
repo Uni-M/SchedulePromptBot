@@ -27,7 +27,7 @@ public class InlineKeyboardImpl implements InlineKeyboard {
 
     // Для админа поиск заданий по именам сотрудника
     @Override
-    public InlineKeyboardMarkup getInlineMessageKeyboardWithNames() {
+    public InlineKeyboardMarkup getInlineMessageKeyboardWithNames() throws BotException {
         List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
 
         Iterable<User> users = userService.getAllUsers();

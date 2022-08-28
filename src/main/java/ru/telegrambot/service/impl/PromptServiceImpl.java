@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
-import ru.telegrambot.constant.message.BotExceptionMessage;
 import ru.telegrambot.constant.message.BotMessageTemplate;
 import ru.telegrambot.constant.state.PromptState;
 import ru.telegrambot.entity.Prompt;
@@ -35,9 +34,10 @@ public class PromptServiceImpl implements PromptService {
         try {
             return entity.get();
         } catch (NullPointerException | NoSuchElementException e) {
-            log.error(BotExceptionMessage.FAIL_FIND_PROMPT_WITH_STATE.getMessage(), state.name(), e);
+            log.error("Fail to find prompt with state: {}", state.name(), e);
         } catch (IncorrectResultSizeDataAccessException e) {
-            log.error(BotExceptionMessage.FAIL_GET_PROMPT_WITH_STATE.getMessage(), state.name(), e);
+            log.error("Fail to get prompt with state: {}. Must be only one prompt (excl. ACTUAL and NOT_ACTUAL), bur was found more",
+                    state.name(), e);
         }
         return null;
     }
@@ -80,11 +80,12 @@ public class PromptServiceImpl implements PromptService {
             return true;
 
         } catch (NullPointerException | NoSuchElementException e) {
-            log.error(BotExceptionMessage.FAIL_FIND_PROMPT_WITH_STATE.getMessage(), PromptState.SET_PROMPT_DATE.name(), e);
+            log.error("Fail to find prompt with state: {}", PromptState.SET_PROMPT_DATE.name(), e);
         } catch (IncorrectResultSizeDataAccessException e) {
-            log.error(BotExceptionMessage.FAIL_GET_PROMPT_WITH_STATE.getMessage(), PromptState.SET_PROMPT_DATE.name(), e);
+            log.error("Fail to get prompt with state: {}. Must be only one prompt (excl. ACTUAL and NOT_ACTUAL), bur was found more",
+                    PromptState.SET_PROMPT_DATE.name(), e);
         } catch (ParseException e) {
-            log.error("Failed to save date. Invalid input: {}", newDate, e);
+            log.error("Fail to save date. Invalid input: {}", newDate, e);
         }
 
         return false;
@@ -106,12 +107,12 @@ public class PromptServiceImpl implements PromptService {
             prompt.setPromptStateType(newState.name());
             promptRepository.save(prompt);
 
-            log.info(BotExceptionMessage.SUCCESS_ADD_PROMPT_STATE.getMessage(),
+            log.info("Prompt state add successful. New state: {}",
                     PromptState.SET_PROMPT_DATE.name());
             return BotMessageTemplate.UPDATE_PROMPT_DATE_MESSAGE.getDescription();
 
         } catch (NullPointerException | NoSuchElementException e) {
-            log.error(BotExceptionMessage.FAIL_FIND_PROMPT_WITH_STATE.getMessage(),
+            log.error("Fail to find prompt with state: {}",
                     PromptState.SET_PROMPT_DATE.name(), e);
             return BotMessageTemplate.ERROR_STATE_MESSAGE.getDescription();
         }
