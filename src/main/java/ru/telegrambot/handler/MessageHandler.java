@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.DataBinder;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -33,6 +34,7 @@ import java.util.List;
 
 import static ru.telegrambot.constant.state.ChatStateType.ACTUAL_STATE;
 import static ru.telegrambot.constant.state.ChatStateType.SET_REMINDER_FREQUENCY;
+import static ru.telegrambot.handler.CallbackQueryHandler.page;
 
 
 @Slf4j
@@ -52,10 +54,11 @@ public class MessageHandler {
 
     /**
      * Обработка входящих входящих текстовых сообщений
+     *
      * @param update объект содержащий текстовое сообщение от пользователя
      * @return объект SendMessage содержащий текстовый ответ пользователю на запрос
      */
-    public SendMessage answerMessage(Update update) {
+    public BotApiMethod<?> answerMessage(Update update) {
 
         Long chatId = update.getMessage().getChatId();
         String input = update.getMessage().getText();
@@ -67,20 +70,10 @@ public class MessageHandler {
             case "/start" -> getStartMessage(chatId, userName, isAdmin);
             case "/help" -> getHelpMessage(chatId, isAdmin);
             case "/timezone" -> getLocationMessage(chatId, userName, isAdmin);
-            case "Создать напоминание" -> addPromptMessage(chatId);
-            case "Получить все напоминания" -> getPromptsMessage(chatId, userName, isAdmin);
-            case "Удалить напоминание" -> deletePromptMessage(chatId);
-            case "Обновить напоминание" -> updatePromptMessage(chatId);
-            case "Обновить описание" -> updateDescriptionMessage(chatId);
-            case "Обновить ближайшую дату" -> updateDataMessage(chatId, userName);
-            case "Обновить частоту напоминания" -> updateRemindingFrequencyMessage(chatId, userName);
-            case "Вернуться в основное меню" -> getReturnMessage(chatId);
             case "Показать всех пользователей" -> getAllUsersMessage(chatId, userName);
             case "Добавить пользователя" -> getAddUserMessage(chatId, userName);
             case "Удалить пользователя" -> getDeleteUserMessage(chatId, userName);
             case "Обновить И.Ф. пользователя" -> getUpdateUserMessage(chatId, userName);
-            case "❎" -> getCancellationMessage(chatId, userName);
-            case "✅" -> getConfirmationMessage(chatId, userName);
             default -> getUserInfo(chatId, userName, input);
         };
 
@@ -100,29 +93,6 @@ public class MessageHandler {
                     BotMessageTemplate.USER_LIST_ERROR.getDescription());
         }
 
-    }
-
-    private SendMessage updateRemindingFrequencyMessage(Long chatId, String userName) {
-        stateControlService.addState(userName, SET_REMINDER_FREQUENCY);
-
-        return createSendMessageWithoutKeyboard(chatId.toString(),
-                BotMessageTemplate.ADD_PROMPT_REMIND_MESSAGE.getDescription());
-    }
-
-    private SendMessage updateDataMessage(Long chatId, String userName) {
-        stateControlService.addState(userName, ChatStateType.UPDATE_PROMPT_DATE);
-
-        String updateResult = promptService.updateState(PromptState.UPDATE,
-                PromptState.SET_PROMPT_DATE);
-
-        return createSendMessageWithoutKeyboard(chatId.toString(),
-                updateResult);
-
-    }
-
-    private SendMessage updateDescriptionMessage(Long chatId) {
-        return createSendMessageWithoutKeyboard(chatId.toString(),
-                BotMessageTemplate.ADD_PROMPT_MESSAGE.getDescription());
     }
 
     private SendMessage getStartMessage(Long chatId, String userName, boolean isAdmin) {
@@ -174,53 +144,6 @@ public class MessageHandler {
         }
     }
 
-    private SendMessage updatePromptMessage(Long chatId) {
-
-        String username = stateControlService.getState().getUserName();
-        stateControlService.addState(username, ChatStateType.UPDATE_PROMPT);
-
-        return createSendMessageWithInlineKeyboard(chatId.toString(),
-                BotMessageTemplate.CHOOSE_PROMPT_MESSAGE.getDescription(),
-                inlineKeyboard.getInlineMessageKeyboardWithPrompts(username));
-    }
-
-    private SendMessage deletePromptMessage(Long chatId) {
-
-        String username = stateControlService.getState().getUserName();
-        stateControlService.addState(username, ChatStateType.DELETE_PROMPT);
-
-        return createSendMessageWithInlineKeyboard(chatId.toString(),
-                BotMessageTemplate.CHOOSE_PROMPT_MESSAGE.getDescription(),
-                inlineKeyboard.getInlineMessageKeyboardWithPrompts(username));
-    }
-
-    private SendMessage addPromptMessage(Long chatId) {
-
-        stateControlService.updateStateForLastUser(ChatStateType.ADD_PROMPT);
-
-        return createSendMessageWithoutKeyboard(chatId.toString(),
-                BotMessageTemplate.ADD_PROMPT_MESSAGE.getDescription());
-    }
-
-    private SendMessage getPromptsMessage(Long chatId, String userName, boolean isAdmin) {
-
-        if (isAdmin) {
-            return createSendMessageWithReplyKeyboard(chatId.toString(),
-                    getAllPromptsDescription(userName),
-                    replyKeyboard.getAdminUserMenuKeyboard());
-        } else {
-            return createSendMessageWithReplyKeyboard(chatId.toString(),
-                    getAllPromptsDescription(userName),
-                    replyKeyboard.getUserMenuKeyboard());
-        }
-    }
-
-    private SendMessage getReturnMessage(Long chatId) {
-        return createSendMessageWithReplyKeyboard(chatId.toString(),
-                BotMessageTemplate.CHOOSE_FROM_MENU_MESSAGE.getDescription(),
-                replyKeyboard.getAdminUserMenuKeyboard());
-    }
-
     private SendMessage getAllUsersMessage(Long chatId, String userName) {
 
         stateControlService.addState(userName, ChatStateType.CHOOSE_ACTION);
@@ -255,44 +178,6 @@ public class MessageHandler {
             return createSendMessageWithoutKeyboard(chatId.toString(),
                     BotMessageTemplate.USER_LIST_ERROR.getDescription());
         }
-    }
-
-    private SendMessage getCancellationMessage(Long chatId, String userName) {
-
-        stateControlService.addState(userName, ChatStateType.ACTUAL_STATE);
-
-        return createSendMessageWithReplyKeyboard(chatId.toString(),
-                BotMessageTemplate.CANCELLATION_MESSAGE.getDescription(),
-                replyKeyboard.getAdminUserMenuKeyboard());
-    }
-
-    private SendMessage getConfirmationMessage(Long chatId, String userName) {
-
-        ChatState chatState = stateControlService.getState();
-
-        switch (chatState.getChatState()) {
-            case "DELETE_USER" -> {
-                try {
-                    userService.deleteUser(chatState.getUserName());
-                } catch (BotException e) {
-                    log.error("Fail to find user with username: {}", chatState.getUserName(), e);
-                }
-            }
-            case "DELETE_PROMPT" -> promptService.deletePrompt(
-                    promptService.getByState(PromptState.DELETE));
-            default -> {
-                return createSendMessageWithReplyKeyboard(chatId.toString(),
-                        BotMessageTemplate.ERROR_STATE_MESSAGE.getDescription(),
-                        replyKeyboard.getAdminUserMenuKeyboard());
-            }
-        }
-
-        stateControlService.addState(userName, ChatStateType.ACTUAL_STATE);
-
-        return createSendMessageWithReplyKeyboard(chatId.toString(),
-                BotMessageTemplate.CONFIRMATION_MESSAGE.getDescription(),
-                replyKeyboard.getAdminUserMenuKeyboard());
-
     }
 
     // TODO нужен рефакторинг! достать все и перекинуть возможно в UserInputParseService
@@ -472,47 +357,6 @@ public class MessageHandler {
         sendMessage.setReplyMarkup(inlineKeyboardMarkup);
 
         return sendMessage;
-    }
-
-    private String getAllPromptsDescription(String userName) {
-        ChatState chatState = stateControlService.getState();
-
-        try {
-            User user = userService.getUserByUserName(chatState.getUserName());
-            List<Prompt> prompts = user.getPrompts();
-
-            if (!prompts.isEmpty()) {
-                StringBuffer parsedPrompts = new StringBuffer();
-
-                prompts.stream()
-                        .filter(prompt -> prompt.getPromptStateType().equals(PromptState.ACTUAL.name()))
-                        .forEach(prompt -> {
-                            String date;
-                            try {
-                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-                                Date d = sdf.parse(prompt.getDate().toString());
-
-                                SimpleDateFormat properFullFormat = new SimpleDateFormat("dd-MM-yyyy  HH:mm");
-                                date = properFullFormat.format(d);
-                            } catch (ParseException e) {
-                                date = BotMessageTemplate.MISSING_DATE.getDescription();
-                                log.error("Fail to parse date. Date is missing");
-                            }
-                            parsedPrompts.append(String.join(" ", "*" + date + "*", prompt.getTaskDescription(), "\n"));
-                        });
-
-                stateControlService.addState(userName, ChatStateType.ACTUAL_STATE);
-                return parsedPrompts.toString();
-            } else {
-                stateControlService.addState(userName, ChatStateType.ACTUAL_STATE);
-                return BotMessageTemplate.NO_PROMPTS_MESSAGE.getDescription();
-            }
-
-        } catch (Exception e) {
-            log.error("Fail to find user with username: {}", chatState.getUserName(), e);
-            return BotMessageTemplate.UNKNOWN_ERROR.getDescription();
-        }
-
     }
 
     private boolean checkIsAdmin(String userName) {

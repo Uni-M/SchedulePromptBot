@@ -15,11 +15,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -103,6 +101,25 @@ public class PromptServiceImpl implements PromptService {
     }
 
     @Override
+    public List<Prompt> getAllByState(PromptState state) {
+        Optional<List<Prompt>> entities = promptRepository.findByPromptStateType(state.name());
+
+        try {
+            return entities.get();
+        } catch (NullPointerException | NoSuchElementException e) {
+            log.error("Fail to find prompt with state: {}",
+                    state.name(), e);
+            return null;
+        }
+
+    }
+
+    @Override
+    public Optional<Prompt> getFirstByUserNameAndState(String userName, String type) {
+        return promptRepository.getFirstByUserNameAndPromptStateType(userName, type);
+    }
+
+    @Override
     public String updateState(PromptState oldState, PromptState newState) {
 
         Optional<Prompt> entity = promptRepository.getByPromptStateType(oldState.name());
@@ -113,12 +130,13 @@ public class PromptServiceImpl implements PromptService {
             promptRepository.save(prompt);
 
             log.info("Prompt state add successful. New state: {}",
-                    PromptState.SET_PROMPT_DATE.name());
+                    newState.name());
+            //TODO CHECK!!
             return BotMessageTemplate.UPDATE_PROMPT_DATE_MESSAGE.getDescription();
 
         } catch (NullPointerException | NoSuchElementException e) {
             log.error("Fail to find prompt with state: {}",
-                    PromptState.SET_PROMPT_DATE.name(), e);
+                    oldState.name(), e);
             return BotMessageTemplate.ERROR_STATE_MESSAGE.getDescription();
         }
 

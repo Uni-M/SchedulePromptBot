@@ -26,4 +26,8 @@ public interface PromptService {
     String updateState(PromptState oldState, PromptState newState);
 
     void updatePrompt(String name, LocalDateTime newDate);
+
+    List<Prompt> getAllByState(PromptState state);
+
+    Optional<Prompt> getFirstByUserNameAndState(String userName, String type);
 }

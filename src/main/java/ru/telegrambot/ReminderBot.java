@@ -2,21 +2,28 @@ package ru.telegrambot;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.DataBinder;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.telegrambot.handler.CallbackQueryHandler;
 import ru.telegrambot.handler.MessageHandler;
 import ru.telegrambot.service.PromptService;
 import ru.telegrambot.service.UserService;
 import ru.telegrambot.utils.EnvHelper;
+import ru.telegrambot.validation.AdminValidator;
 
 import javax.inject.Singleton;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -70,10 +77,8 @@ public class ReminderBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         log.info("New update received");
 
-        SendMessage sendMessage = handleUpdate(update);
-
         try {
-            execute(sendMessage);
+            handleUpdate(update);
         } catch (TelegramApiException e) {
             log.error("Fail to execute message. Exception: ", e);
         }
@@ -90,23 +95,18 @@ public class ReminderBot extends TelegramLongPollingBot {
         return botToken;
     }
 
-    private SendMessage handleUpdate(Update update) {
+    private void handleUpdate(Update update) throws TelegramApiException {
 
         if (update.hasMessage()) {
 
-            String chatId = String.valueOf(update.getMessage().getChatId());
-            SendMessage sendMessage = messageHandler.answerMessage(update);
-            sendMessage.setChatId(chatId);
-            sendMessage.enableMarkdown(true);
-            return sendMessage;
+            execute(messageHandler.answerMessage(update));
 
         } else if (update.hasCallbackQuery()) {
 
             CallbackQuery callbackQuery = update.getCallbackQuery();
-            return callbackQueryHandler.processCallbackQuery(callbackQuery);
+            execute(callbackQueryHandler.processCallbackQuery(callbackQuery));
 
         }
-        return null;
 
     }
 

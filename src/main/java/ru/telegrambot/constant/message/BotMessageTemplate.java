@@ -32,7 +32,7 @@ public enum BotMessageTemplate {
     CHOOSE_FROM_MENU_MESSAGE("Выберете действие из меню"),
     CHOOSE_USER_MESSAGE("Выберете пользователя из вертикального меню \uD83D\uDC47"),
     CHOOSE_PROMPT_MESSAGE("Выберете напоминаниe из вертикального меню \uD83D\uDC47"),
-    CHOOSE_ACTIVITY("Выберите из основного меню действия с напоминаниями выбранного пользователя: "),
+    CHOOSE_ACTIVITY("Выберите действие с напоминанием: "),
     CHOOSE_PROMPT_ACTIVITY("Выберите из основного меню действия с выбранным напоминанием: "),
 
     /**

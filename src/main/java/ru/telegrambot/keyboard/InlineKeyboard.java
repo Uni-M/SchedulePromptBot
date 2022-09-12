@@ -7,6 +7,12 @@ public interface InlineKeyboard {
 
     InlineKeyboardMarkup getInlineMessageKeyboardWithNames() throws BotException;
 
-    InlineKeyboardMarkup getInlineMessageKeyboardWithPrompts(String name);
+    InlineKeyboardMarkup getInlineMessageKeyboardWithPrompts(String name, Long page);
+
+    InlineKeyboardMarkup getInlineMessageKeyboardWithActions(boolean isAdmin);
+
+    InlineKeyboardMarkup getInlineMessageKeyboardWithUpdates();
+
+    InlineKeyboardMarkup getInlineMessageKeyboardWithConfirmation();
 
 }

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.telegrambot.constant.message.BotMessageTemplate;
 import ru.telegrambot.entity.User;
 import ru.telegrambot.exeption.BotException;
 import ru.telegrambot.repository.UserRepository;
@@ -13,6 +14,8 @@ import ru.telegrambot.utils.EnvHelper;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.TimeZone;
+
+import static ru.telegrambot.constant.message.BotMessageTemplate.ERROR_FIND_USER;
 
 @Slf4j
 @Service
@@ -102,12 +105,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(String userName) throws BotException {
+    public String deleteUser(String userName) {
 
         try {
             userRepository.deleteUserByUserName(userName);
+            return BotMessageTemplate.CONFIRMATION_MESSAGE.getDescription();
         } catch (NullPointerException | NoSuchElementException e) {
-            throw new BotException("Fail to find user with username: " + userName, e);
+            log.error("Fail to find user with username: {}", userName, e);
+            return BotMessageTemplate.ERROR_FIND_USER.getDescription();
         }
 
     }

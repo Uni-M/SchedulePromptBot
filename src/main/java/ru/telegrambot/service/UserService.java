@@ -7,7 +7,7 @@ public interface UserService {
 
     void updateUserInfo(User user);
 
-    void deleteUser(String name) throws BotException;
+    String deleteUser(String name);
 
     Iterable<User> getAllUsers() throws BotException;
 

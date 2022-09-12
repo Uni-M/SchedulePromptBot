@@ -23,6 +23,8 @@ public interface PromptRepository extends CrudRepository<Prompt, String> {
     Optional<Prompt> getByPromptStateType(String state);
     Optional<Prompt> getByTaskDescription(String name);
     Optional<List<Prompt>> getByUserName(String name);
+    Optional<List<Prompt>> findByPromptStateType(String state);
+    Optional<Prompt> getFirstByUserNameAndPromptStateType(String userName, String type);
 
     @Transactional
     @Query(value = "SELECT users.time_zone " +
@@ -72,5 +74,6 @@ public interface PromptRepository extends CrudRepository<Prompt, String> {
             nativeQuery = true)
     void updateChatState(@Param("description") String description,
                          @Param("state") String state);
+
 
 }

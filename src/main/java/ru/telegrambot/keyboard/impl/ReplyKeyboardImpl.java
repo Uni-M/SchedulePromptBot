@@ -89,7 +89,7 @@ public class ReplyKeyboardImpl implements ReplyKeyboard {
         replyKeyboardMarkup.setKeyboard(keyboard);
         replyKeyboardMarkup.setSelective(true);
         replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
+        replyKeyboardMarkup.setOneTimeKeyboard(true);
 
         return replyKeyboardMarkup;
     }

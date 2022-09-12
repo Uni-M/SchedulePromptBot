@@ -5,5 +5,6 @@ package ru.telegrambot.constant;
  */
 public enum CallbackDataParts {
     PROMPT_,
-    USER_NAME_
+    USER_NAME_,
+    ACTION_
 }

@@ -20,7 +20,14 @@ public enum PromptKeyboardButtons {
     NO_REPEAT("Без повторений"),
     FIXED_DATE("Указать ближайшую дату"),
 
-    USER_MENU("Вернуться в основное меню"),;
+    CONFIRM("✅"),
+    CANCEL("❎"),
+
+    CHOOSE("Выбрать"),
+    NEXT("▶"),
+    PREVIOUS("◀"),
+
+    USER_MENU("Вернуться в основное меню");
 
 
     private final String buttonDescription;
