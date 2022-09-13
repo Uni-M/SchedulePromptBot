@@ -28,6 +28,4 @@ public interface PromptService {
     void updatePrompt(String name, LocalDateTime newDate);
 
     List<Prompt> getAllByState(PromptState state);
-
-    Optional<Prompt> getFirstByUserNameAndState(String userName, String type);
 }

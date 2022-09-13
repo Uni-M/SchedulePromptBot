@@ -103,13 +103,14 @@ public class CallbackQueryHandler {
                     page = 0L;
                     stateControlService.addState(userName, ChatStateType.CHOOSE_ACTION);
                     try {
-                        Prompt firstPrompt = promptService.getFirstByUserNameAndState(userName, PromptState.ACTUAL.name()).get();
+                        Prompt prompt = getChosenPrompt();
 
-                        System.out.println(firstPrompt);
                         return EditMessageText.builder()
                                 .messageId(messageId)
                                 .chatId(chatId)
-                                .text("<b>Дата: " + parseDate(firstPrompt.getDate()) + "</b>\n\n" + firstPrompt.getTaskDescription())
+                                .text(String.format("<b>Дата: %s</b>\n\n%s",
+                                        parseDate(prompt.getDate()),
+                                        prompt.getTaskDescription()))
                                 .parseMode("html")
                                 .replyMarkup(inlineKeyboard.getInlineMessageKeyboardWithPrompts(chatState.getUserName(), page))
                                 .build();
@@ -180,7 +181,9 @@ public class CallbackQueryHandler {
                     return EditMessageText.builder()
                             .messageId(messageId)
                             .chatId(chatId)
-                            .text("<b>Дата: " + parseDate(prompt.getDate()) + "</b>\n\n" + prompt.getTaskDescription())
+                            .text(String.format("<b>Дата: %s</b>\n\n%s",
+                                    parseDate(prompt.getDate()),
+                                    prompt.getTaskDescription()))
                             .parseMode("html")
                             .replyMarkup(inlineKeyboard.getInlineMessageKeyboardWithPrompts(chatState.getUserName(), page))
                             .build();
@@ -213,9 +216,11 @@ public class CallbackQueryHandler {
                         return EditMessageText.builder()
                                 .messageId(messageId)
                                 .chatId(chatId)
-                                .text(BotMessageTemplate.DELETE_PROMPT_MESSAGE.getDescription() +
-                                        "\n<b>Имя: " + getFullName(username) +
-                                        "\nДата: " + parseDate(prompt.getDate()) + "</b>\n\n" + prompt.getTaskDescription())
+                                .text(String.format("%s\n<b>Имя: %s\nДата: %s</b>\n\n%s",
+                                        BotMessageTemplate.DELETE_PROMPT_MESSAGE.getDescription(),
+                                        getFullName(username),
+                                        parseDate(prompt.getDate()),
+                                        prompt.getTaskDescription()))
                                 .parseMode("html")
                                 .replyMarkup(inlineKeyboard.getInlineMessageKeyboardWithConfirmation())
                                 .build();
@@ -239,9 +244,11 @@ public class CallbackQueryHandler {
                         return EditMessageText.builder()
                                 .messageId(messageId)
                                 .chatId(chatId)
-                                .text(BotMessageTemplate.CHOOSE_ACTIVITY.getDescription() +
-                                        "\n\n<b>Имя: " + getFullName(activeUser) +
-                                        "\nДата: " + parseDate(prompt.getDate()) + "</b>\n\n" + prompt.getTaskDescription())
+                                .text(String.format("%s\n\n<b>Имя: %s\nДата: %s</b>\n\n%s",
+                                        BotMessageTemplate.CHOOSE_ACTIVITY.getDescription(),
+                                        getFullName(activeUser),
+                                        parseDate(prompt.getDate()),
+                                        prompt.getTaskDescription()))
                                 .parseMode("html")
                                 .replyMarkup(inlineKeyboard.getInlineMessageKeyboardWithUpdates())
                                 .build();

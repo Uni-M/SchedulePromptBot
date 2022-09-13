@@ -17,14 +17,8 @@ import java.util.Optional;
 public interface PromptRepository extends CrudRepository<Prompt, String> {
 
     Optional<List<Prompt>> findAllByDateBetween(Instant startInstant, Instant endInstant);
-    Optional<Prompt> findByTaskDescription(String name);
-
-    boolean existsByPromptStateType(String state);
     Optional<Prompt> getByPromptStateType(String state);
-    Optional<Prompt> getByTaskDescription(String name);
-    Optional<List<Prompt>> getByUserName(String name);
     Optional<List<Prompt>> findByPromptStateType(String state);
-    Optional<Prompt> getFirstByUserNameAndPromptStateType(String userName, String type);
 
     @Transactional
     @Query(value = "SELECT users.time_zone " +

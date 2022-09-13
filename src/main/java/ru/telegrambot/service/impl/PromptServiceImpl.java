@@ -115,11 +115,6 @@ public class PromptServiceImpl implements PromptService {
     }
 
     @Override
-    public Optional<Prompt> getFirstByUserNameAndState(String userName, String type) {
-        return promptRepository.getFirstByUserNameAndPromptStateType(userName, type);
-    }
-
-    @Override
     public String updateState(PromptState oldState, PromptState newState) {
 
         Optional<Prompt> entity = promptRepository.getByPromptStateType(oldState.name());
